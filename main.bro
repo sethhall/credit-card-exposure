@@ -67,7 +67,7 @@ function check_cards(c: connection, data: string): bool
 
 	for ( ccp in ccps )
 		{
-		if ( luhn_check(ccp) )
+		if ( cc_separators in ccp && luhn_check(ccp) )
 			{
 			# we've got a match
 			local parts = split_all(data, cc_regex);
@@ -113,21 +113,6 @@ function check_cards(c: connection, data: string): bool
 			}
 		}
 	return F;
-	}
-
-event bro_init()
-	{
-	if ( cc_regex in "1234567812345670" )
-		print "it works with straight numbers!";
-	if ( cc_regex in "1234-5678-1234-5670" )
-		print "it works with hyphen separators!";
-
-	if ( luhn_check("1234-5678-1234-5670") )
-		print "should be valid!";
-	if ( luhn_check("1234-5678-1234-5678") )
-		print "shouldn't be printing!";
-
-	print "done";
 	}
 
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
