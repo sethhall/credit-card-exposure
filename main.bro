@@ -21,10 +21,10 @@ export {
 		data: string  &log;
 	};
 	
-	## Logs are redacted by defaultIf you want to see the credit card numbers in 
-	## the log, redef this value to T.  
+	## Logs are redacted by default.  If you want to see the credit card 
+	## numbers in the log, redef this value to F.  
 	## Notices are automatically and unchangeably redacted.
-	const redact_log = F &redef;
+	const redact_log = T &redef;
 
 	## The character used for redaction to replace all numbers.
 	const redaction_char = "X" &redef;
