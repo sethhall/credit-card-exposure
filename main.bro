@@ -33,11 +33,11 @@ export {
 	## as a summary in notices.
 	const summary_length = 200 &redef;
 
-	const cc_regex = /^[3-9]{4}([ -\.]?\x00?[0-9]{4}){3}$/ &redef;
+	const cc_regex = /[3-9][0-9]{3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}/ &redef;
 
-	const cc_separators = /\.(.*\.){3}/ | 
-	                      /\-(.*\-){3}/ | 
-	                      /[:blank:](.*[:blank:]){3}/ &redef;
+	const cc_separators = /\.([0-9]*\.){2}/ | 
+	                      /\-([0-9]*\-){2}/ | 
+	                      /[:blank:]([0-9]*[:blank:]){2}/ &redef;
 }
 
 const luhn_vector = vector(0,2,4,6,8,1,3,5,7,9);
@@ -45,11 +45,10 @@ function luhn_check(val: string): bool
 	{
 	local sum = 0;
 	local odd = T;
-	local parts = str_split(gsub(val, /[^0-9]/, ""), vector(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15));
-	for ( i in parts )
+	for ( char in gsub(val, /[^0-9]/, "") )
 		{
 		odd = !odd;
-		local digit = to_count(parts[i]);
+		local digit = to_count(char);
 		sum += (odd ? digit : luhn_vector[digit]);
 		}
 	return sum % 10 == 0;
