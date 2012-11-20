@@ -33,7 +33,7 @@ export {
 	## as a summary in notices.
 	const summary_length = 200 &redef;
 
-	const cc_regex = /[3-9][0-9]{3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}/ &redef;
+	const cc_regex = /(^|[^0-9])\x00?[3-9](\x00?[0-9]){3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9]|$)/ &redef;
 
 	const cc_separators = /\.([0-9]*\.){2}/ | 
 	                      /\-([0-9]*\-){2}/ | 
@@ -66,6 +66,11 @@ function check_cards(c: connection, data: string): bool
 
 	for ( ccp in ccps )
 		{
+		# Remove non digit characters from the beginning and end of string.
+		ccp = sub(ccp, /^[^0-9]*/, "");
+		ccp = sub(ccp, /[^0-9]*$/, "");
+		# Remove any null bytes.
+		ccp = gsub(ccp, /\x00/, "");
 		if ( cc_separators in ccp && luhn_check(ccp) )
 			{
 			# we've got a match
@@ -76,13 +81,12 @@ function check_cards(c: connection, data: string): bool
 				{
 				if ( i % 2 == 0 )
 					{
-					# Redact all matches and save one back for 
-					# finding it's location.
+					# Redact all matches
 					cc_match = parts[i];
 					parts[i] = gsub(parts[i], /[0-9]/, redaction_char);
-					redacted_cc = parts[i];
 					}
 				}
+			redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
 
 			local redacted_data = join_string_array("", parts);
 			local cc_location = strstr(data, cc_match);
@@ -116,13 +120,13 @@ function check_cards(c: connection, data: string): bool
 
 event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
 	{
-	if ( c$start_time > network_time()-10secs )
+	if ( c$start_time > network_time()-20secs )
 		check_cards(c, data);
 	}
 
 event mime_segment_data(c: connection, length: count, data: string)
 	{
-	if ( c$start_time > network_time()-10secs )
+	if ( c$start_time > network_time()-20secs )
 		check_cards(c, data);
 	}
 
