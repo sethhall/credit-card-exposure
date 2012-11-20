@@ -37,7 +37,7 @@ export {
 	## as a summary in notices.
 	const summary_length = 200 &redef;
 
-	const cc_regex = /(^|[^0-9])\x00?[3-9](\x00?[0-9]){3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9]|$)/ &redef;
+	const cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/ &redef;
 
 	const cc_separators = /\.([0-9]*\.){2}/ | 
 	                      /\-([0-9]*\-){2}/ | 
