@@ -77,25 +77,22 @@ function check_cards(c: connection, data: string): bool
 		ccp = gsub(ccp, /\x00/, "");
 		if ( cc_separators in ccp && luhn_check(ccp) )
 			{
-			local redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
-
 			# we've got a match
-			local parts = split_all(data, cc_regex);
-			for ( i in parts )
+			local cc_parts = split_all(data, cc_regex);
+			for ( i in cc_parts )
 				{
 				if ( i % 2 == 0 )
 					{
 					# Redact all matches
-					local cc_match = parts[i];
-					parts[i] = gsub(parts[i], /[0-9]/, redaction_char);
+					local cc_match = cc_parts[i];
+					cc_parts[i] = gsub(cc_parts[i], /[0-9]/, redaction_char);
 					}
 				}
-
-			local redacted_data = join_string_array("", parts);
-			local cc_location = strstr(data, ccp);
+			local redacted_data = join_string_array("", cc_parts);
 
 			# Trim the data
 			local begin = 0;
+			local cc_location = strstr(data, ccp);
 			if ( cc_location > (summary_length/2) )
 				begin = cc_location - (summary_length/2);
 			
@@ -112,7 +109,7 @@ function check_cards(c: connection, data: string): bool
 
 			local log: Info = [$ts=network_time(), 
 			                   $uid=c$uid, $id=c$id,
-			                   $cc=(redact_log ? redacted_cc : ccp),
+			                   $cc=(redact_log ? gsub(ccp, /[0-9]/, redaction_char) : ccp),
 			                   $data=(redact_log ? trimmed_redacted_data : sub_bytes(data, begin, byte_count))];
 
 			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
