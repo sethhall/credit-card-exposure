@@ -77,23 +77,24 @@ function check_cards(c: connection, data: string): bool
 		ccp = gsub(ccp, /\x00/, "");
 		if ( cc_separators in ccp && luhn_check(ccp) )
 			{
+			local redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
+
 			# we've got a match
 			local parts = split_all(data, cc_regex);
-			local cc_match = "";
-			local redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
 			for ( i in parts )
 				{
 				if ( i % 2 == 0 )
 					{
 					# Redact all matches
-					cc_match = parts[i];
+					local cc_match = parts[i];
 					parts[i] = gsub(parts[i], /[0-9]/, redaction_char);
 					}
 				}
 
 			local redacted_data = join_string_array("", parts);
-			local cc_location = strstr(data, cc_match);
+			local cc_location = strstr(data, ccp);
 
+			# Trim the data
 			local begin = 0;
 			if ( cc_location > (summary_length/2) )
 				begin = cc_location - (summary_length/2);
@@ -102,17 +103,17 @@ function check_cards(c: connection, data: string): bool
 			if ( begin + summary_length > |redacted_data| )
 				byte_count = |redacted_data| - begin;
 
-			local trimmed_data = sub_bytes(redacted_data, begin, byte_count);
+			local trimmed_redacted_data = sub_bytes(redacted_data, begin, byte_count);
 
 			NOTICE([$note=Found,
 			        $conn=c,
-			        $msg=fmt("Redacted excerpt of disclosed credit card session: %s", trimmed_data),
+			        $msg=fmt("Redacted excerpt of disclosed credit card session: %s", trimmed_redacted_data),
 			        $identity=cat(c$id$orig_h,c$id$resp_h)]);
 
 			local log: Info = [$ts=network_time(), 
 			                   $uid=c$uid, $id=c$id,
-			                   $cc=(redact_log ? redacted_cc : cc_match),
-			                   $data=(redact_log ? redacted_data : data)];
+			                   $cc=(redact_log ? redacted_cc : ccp),
+			                   $data=(redact_log ? trimmed_redacted_data : sub_bytes(data, begin, byte_count))];
 
 			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
 			if ( bin_number in bin_list )
