@@ -1,4 +1,6 @@
 
+@load ./bin-list
+
 module CreditCardExposure;
 
 export {
@@ -17,6 +19,8 @@ export {
 		id:   conn_id &log;
 		## Credit card number that was discovered.
 		cc:   string  &log &optional;
+		## Bank Indentification number information
+		bank: Bank    &log &optional;
 		## Data that was received when the credit card was discovered.
 		data: string  &log;
 	};
@@ -76,7 +80,7 @@ function check_cards(c: connection, data: string): bool
 			# we've got a match
 			local parts = split_all(data, cc_regex);
 			local cc_match = "";
-			local redacted_cc = "";
+			local redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
 			for ( i in parts )
 				{
 				if ( i % 2 == 0 )
@@ -86,7 +90,6 @@ function check_cards(c: connection, data: string): bool
 					parts[i] = gsub(parts[i], /[0-9]/, redaction_char);
 					}
 				}
-			redacted_cc = gsub(ccp, /[0-9]/, redaction_char);
 
 			local redacted_data = join_string_array("", parts);
 			local cc_location = strstr(data, cc_match);
@@ -110,6 +113,10 @@ function check_cards(c: connection, data: string): bool
 			                   $uid=c$uid, $id=c$id,
 			                   $cc=(redact_log ? redacted_cc : cc_match),
 			                   $data=(redact_log ? redacted_data : data)];
+
+			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
+			if ( bin_number in bin_list )
+				log$bank = bin_list[bin_number];
 
 			Log::write(CreditCardExposure::LOG, log);
 			return T;
