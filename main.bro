@@ -105,7 +105,7 @@ function check_cards(c: connection, data: string): bool
 			NOTICE([$note=Found,
 			        $conn=c,
 			        $msg=fmt("Redacted excerpt of disclosed credit card session: %s", trimmed_redacted_data),
-			        $identity=cat(c$id$orig_h,c$id$resp_h)]);
+			        $identifier=cat(c$id$orig_h,c$id$resp_h)]);
 
 			local log: Info = [$ts=network_time(), 
 			                   $uid=c$uid, $id=c$id,
