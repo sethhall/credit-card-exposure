@@ -30,14 +30,15 @@ export {
 	## Notices are automatically and unchangeably redacted.
 	const redact_log = T &redef;
 
-	## The character used for redaction to replace all numbers.
-	const redaction_char = "X" &redef;
-
 	## The number of bytes around the discovered credit card number that is used 
 	## as a summary in notices.
 	const summary_length = 200 &redef;
 
-	const cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/ &redef;
+	const cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/ &redef;
+
+	## Configure this to `F` if you'd like to stop enforcing that
+	## credit cards use an internal digit separator.
+	const use_cc_separators = T &redef;
 
 	const cc_separators = /\.([0-9]*\.){2}/ | 
 	                      /\-([0-9]*\-){2}/ | 
@@ -48,7 +49,7 @@ const luhn_vector = vector(0,2,4,6,8,1,3,5,7,9);
 function luhn_check(val: string): bool
 	{
 	local sum = 0;
-	local odd = T;
+	local odd = F;
 	for ( char in gsub(val, /[^0-9]/, "") )
 		{
 		odd = !odd;
@@ -66,8 +67,10 @@ event bro_init() &priority=5
 
 function check_cards(c: connection, data: string): bool
 	{
-	local ccps = find_all(data, cc_regex);
+	local found_cnt = 0;
 
+	local ccps = find_all(data, cc_regex);
+	print ccps;
 	for ( ccp in ccps )
 		{
 		# Remove non digit characters from the beginning and end of string.
@@ -75,17 +78,20 @@ function check_cards(c: connection, data: string): bool
 		ccp = sub(ccp, /[^0-9]*$/, "");
 		# Remove any null bytes.
 		ccp = gsub(ccp, /\x00/, "");
-		if ( cc_separators in ccp && luhn_check(ccp) )
+
+		if ( (!use_cc_separators || cc_separators in ccp) && luhn_check(ccp) )
 			{
+			++found_cnt;
+
 			# we've got a match
 			local cc_parts = split_string_all(data, cc_regex);
 			for ( i in cc_parts )
 				{
-				if ( i % 2 == 0 )
+				if ( i % 2 == 1 )
 					{
 					# Redact all matches
 					local cc_match = cc_parts[i];
-					cc_parts[i] = gsub(cc_parts[i], /[0-9]/, redaction_char);
+					cc_parts[i] = gsub(cc_parts[i], /[0-9]/, "X");
 					}
 				}
 			local redacted_data = join_string_vec(cc_parts, "");
@@ -102,14 +108,9 @@ function check_cards(c: connection, data: string): bool
 
 			local trimmed_redacted_data = sub_bytes(redacted_data, begin, byte_count);
 
-			NOTICE([$note=Found,
-			        $conn=c,
-			        $msg=fmt("Redacted excerpt of disclosed credit card session: %s", trimmed_redacted_data),
-			        $identifier=cat(c$id$orig_h,c$id$resp_h)]);
-
 			local log: Info = [$ts=network_time(), 
 			                   $uid=c$uid, $id=c$id,
-			                   $cc=(redact_log ? gsub(ccp, /[0-9]/, redaction_char) : ccp),
+			                   $cc=(redact_log ? gsub(ccp, /[0-9]/, "X") : ccp),
 			                   $data=(redact_log ? trimmed_redacted_data : sub_bytes(data, begin, byte_count))];
 
 			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
@@ -117,30 +118,51 @@ function check_cards(c: connection, data: string): bool
 				log$bank = bin_list[bin_number];
 
 			Log::write(CreditCardExposure::LOG, log);
-			return T;
 			}
+		
 		}
-	return F;
-	}
-
-event http_entity_data(c: connection, is_orig: bool, length: count, data: string)
-	{
-	if ( c$start_time > network_time()-20secs )
-		check_cards(c, data);
-	}
-
-event mime_segment_data(c: connection, length: count, data: string)
-	{
-	if ( c$start_time > network_time()-20secs )
-		check_cards(c, data);
+	if ( found_cnt > 0 )
+		{
+		NOTICE([$note=CreditCardExposure::Found,
+		        $conn=c,
+		        $msg=fmt("Found at least %d credit card number%s", found_cnt, found_cnt > 1 ? "s" : ""),
+		        $sub=trimmed_redacted_data,
+		        $identifier=cat(c$id$orig_h,c$id$resp_h)]);
+		return T;
+		}
+	else
+		{
+		return F;
+		}
 	}
 
 # This is used if the signature based technique is in use
-function validate_credit_card_match(state: signature_state, data: string): bool
-	{
-	# TODO: Don't handle HTTP data this way.
-	if ( /^GET/ in data )
-		return F;
+#function validate_credit_card_match(state: signature_state, data: string): bool
+#	{
+#	# TODO: Don't handle HTTP data this way.
+#	if ( /^GET/ in data )
+#		return F;
+#
+#	return check_cards(state$conn, data);
+#	}
 
-	return check_cards(state$conn, data);
+event CreditCardExposure::stream_data(f: fa_file, data: string)
+	{
+	local c: connection;
+	for ( id in f$conns )
+		{
+		c = f$conns[id];
+		break;
+		}
+	if ( c$start_time > network_time()-20secs )
+		check_cards(c, data);
+	}
+
+event file_new(f: fa_file)
+	{
+	if ( f$source == "HTTP" || f$source == "SMTP" )
+		{
+		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT, 
+		                    [$stream_event=CreditCardExposure::stream_data]);
+		}
 	}
