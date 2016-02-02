@@ -78,7 +78,7 @@ function check_cards(c: connection, data: string): bool
 		if ( cc_separators in ccp && luhn_check(ccp) )
 			{
 			# we've got a match
-			local cc_parts = split_all(data, cc_regex);
+			local cc_parts = split_string_all(data, cc_regex);
 			for ( i in cc_parts )
 				{
 				if ( i % 2 == 0 )
@@ -88,7 +88,7 @@ function check_cards(c: connection, data: string): bool
 					cc_parts[i] = gsub(cc_parts[i], /[0-9]/, redaction_char);
 					}
 				}
-			local redacted_data = join_string_array("", cc_parts);
+			local redacted_data = join_string_vec(cc_parts, "");
 
 			# Trim the data
 			local begin = 0;
