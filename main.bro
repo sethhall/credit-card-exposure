@@ -70,7 +70,6 @@ function check_cards(c: connection, data: string): bool
 	local found_cnt = 0;
 
 	local ccps = find_all(data, cc_regex);
-	print ccps;
 	for ( ccp in ccps )
 		{
 		# Remove non digit characters from the beginning and end of string.
@@ -85,7 +84,8 @@ function check_cards(c: connection, data: string): bool
 
 			# we've got a match
 			local cc_parts = split_string_all(data, cc_regex);
-			for ( i in cc_parts )
+			# take a copy to avoid modifying the vector while iterating.
+			for ( i in copy(ccp_parts) )
 				{
 				if ( i % 2 == 1 )
 					{
