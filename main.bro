@@ -85,7 +85,7 @@ function check_cards(c: connection, data: string): bool
 			# we've got a match
 			local cc_parts = split_string_all(data, cc_regex);
 			# take a copy to avoid modifying the vector while iterating.
-			for ( i in copy(ccp_parts) )
+			for ( i in copy(cc_parts) )
 				{
 				if ( i % 2 == 1 )
 					{
