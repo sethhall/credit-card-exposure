@@ -6,11 +6,25 @@ Detect credit card numbers in HTTP and SMTP with Bro.  This script only works wi
 Installation
 ------------
 
+Bro Package Manager
+*******************
+
+This is a test for the new Bro package manager.  If you don't have the package
+manager and you don't want to work with early code please use the alternate 
+manual installation method.
+
+::
+
+        bro-pkg install git://github.com/sethhall/credit-card-exposure.git
+
+Alternate Manual Installation
+*****************************
+
 ::
 
 	cd <prefix>/share/bro/site/
 	git clone git://github.com/sethhall/credit-card-exposure.git
-	echo "@load credit-card-exposure" >> local.bro
+	echo "@load credit-card-exposure/scripts" >> local.bro
 
 After the credit-card-exposure module is loaded, follow the configuration 
 examples below.  One or both of the following options must be done or the script
