@@ -7,6 +7,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	redef enum Notice::Type += { 
+		## An apparently valid credit card number was found.
 		Found
 	};
 

@@ -15,7 +15,8 @@ manual installation method.
 
 ::
 
-        bro-pkg install git://github.com/sethhall/credit-card-exposure.git
+	bro-pkg refresh
+	bro-pkg install credit-card-exposure
 
 Alternate Manual Installation
 *****************************
@@ -24,11 +25,10 @@ Alternate Manual Installation
 
 	cd <prefix>/share/bro/site/
 	git clone git://github.com/sethhall/credit-card-exposure.git
-	echo "@load credit-card-exposure/scripts" >> local.bro
+	echo "@load credit-card-exposure" >> local.bro
 
 After the credit-card-exposure module is loaded, follow the configuration 
-examples below.  One or both of the following options must be done or the script
-won't do anything.  
+examples below.
 
 Configuration
 -------------
