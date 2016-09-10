@@ -88,7 +88,7 @@ function check_cards(c: connection, data: string): bool
 			# take a copy to avoid modifying the vector while iterating.
 			for ( i in copy(cc_parts) )
 				{
-				if ( i % 2 == 1 )
+				if ( i % 2 == 0 )
 					{
 					# Redact all matches
 					local cc_match = cc_parts[i];
@@ -136,16 +136,6 @@ function check_cards(c: connection, data: string): bool
 		return F;
 		}
 	}
-
-# This is used if the signature based technique is in use
-#function validate_credit_card_match(state: signature_state, data: string): bool
-#	{
-#	# TODO: Don't handle HTTP data this way.
-#	if ( /^GET/ in data )
-#		return F;
-#
-#	return check_cards(state$conn, data);
-#	}
 
 event CreditCardExposure::stream_data(f: fa_file, data: string)
 	{

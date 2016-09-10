@@ -1,7 +1,7 @@
 Credit Card Exposure
 ====================
 
-Detect credit card numbers in HTTP and SMTP with Bro.  This script only works with Bro 2.4.
+Detect credit card numbers in HTTP and SMTP with Bro.  This script only works with Bro 2.4+.
 
 Installation
 ------------
