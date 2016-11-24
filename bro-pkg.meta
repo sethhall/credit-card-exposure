@@ -1,3 +1,4 @@
 [package]
-version = 1.1.0
+description = Detect and log credit cards.
+tags = file analysis, credit card, cc, dlp, data loss
 script_dir = scripts
