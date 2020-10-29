@@ -1,5 +1,6 @@
 
 @load ./bin-list
+@load base/frameworks/notice
 
 module CreditCardExposure;
 
@@ -60,7 +61,7 @@ function luhn_check(val: string): bool
 	return sum % 10 == 0;
 	}
 
-event bro_init() &priority=5
+event zeek_init() &priority=5
 	{
 	Log::create_stream(CreditCardExposure::LOG, [$columns=Info]);
 	}

@@ -1,12 +1,20 @@
 module CreditCardExposure;
 
+
 export {
 	type Bank: record {
 		typ:      string;
 		name:     string;
 	} &log;
 
-	const bin_list: table[count] of Bank = {
+	const bin_list: table[count] of Bank = {} &redef;
+
+	const load_bin_list=F &redef;
+}
+
+
+@if( CreditCardExposure::load_bin_list )
+redef CreditCardExposure::bin_list += {
 		[370370] = [$typ="Amex", $name="AMEX PLATINUM"],
 		[370371] = [$typ="Amex", $name="AMEX PLATINUM"],
 		[370372] = [$typ="Amex", $name="AMEX PLATINUM"],
@@ -52522,5 +52530,5 @@ export {
 		[601137] = [$typ="DISCOVER", $name=""],
 		[601138] = [$typ="DISCOVER", $name=""],
 		[601139] = [$typ="DISCOVER", $name=""],
-	} &redef;
-}
+};
+@endif

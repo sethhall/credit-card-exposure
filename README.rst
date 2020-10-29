@@ -1,27 +1,27 @@
 Credit Card Exposure
 ====================
 
-Detect credit card numbers in HTTP and SMTP with Bro.  This script only works with Bro 2.4+.
+Detect credit card numbers in HTTP and SMTP with Zeek.  This script only works with Zeek 3.0+.
 
 Installation
 ------------
 
-Bro Package Manager
-*******************
+Zeek Package Manager
+********************
 
 ::
 
-	bro-pkg refresh
-	bro-pkg install sethhall/credit-card-exposure
+	zkg refresh
+	zkg install sethhall/credit-card-exposure
 
 Alternate Manual Installation
 *****************************
 
 ::
 
-	cd <prefix>/share/bro/site/
+	cd <prefix>/share/zeek/site/
 	git clone git://github.com/sethhall/credit-card-exposure.git
-	echo "@load credit-card-exposure/scripts/" >> local.bro
+	echo "@load credit-card-exposure/scripts/" >> local.zeek
 
 After the credit-card-exposure module is loaded, follow the configuration 
 examples below.
