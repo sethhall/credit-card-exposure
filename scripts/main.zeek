@@ -1,5 +1,5 @@
 
-@load ./bin-list
+@load ./bank
 @load base/frameworks/notice
 
 module CreditCardExposure;
@@ -13,7 +13,7 @@ export {
 	};
 
 	type Info: record {
-		## When the SSN was seen.
+		## When the credit card was seen.
 		ts:   time    &log;
 		## Unique ID for the connection.
 		uid:  string  &log;
@@ -28,23 +28,25 @@ export {
 	};
 	
 	## Logs are redacted by default.  If you want to see the credit card 
-	## numbers in the log, redef this value to F.  
+	## numbers in the log, redef this value to F.
 	## Notices are automatically and unchangeably redacted.
-	const redact_log = T &redef;
+	option redact_log = T;
 
 	## The number of bytes around the discovered credit card number that is used 
 	## as a summary in notices.
-	const summary_length = 200 &redef;
+	option summary_length = 200;
 
-	const cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/ &redef;
+	## The regular expression which is used to find candidate credit cards.
+	option cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/;
 
 	## Configure this to `F` if you'd like to stop enforcing that
 	## credit cards use an internal digit separator.
-	const use_cc_separators = T &redef;
+	option use_cc_separators = T;
 
-	const cc_separators = /\.([0-9]*\.){2}/ | 
-	                      /\-([0-9]*\-){2}/ | 
-	                      /[:blank:]([0-9]*[:blank:]){2}/ &redef;
+	## Separators expected to be seen between groups of digits in a credit card.
+	option cc_separators = /\.([0-9]*\.){2}/ | 
+	                       /\-([0-9]*\-){2}/ | 
+	                       /[:blank:]([0-9]*[:blank:]){2}/;
 }
 
 const luhn_vector = vector(0,2,4,6,8,1,3,5,7,9);
@@ -152,7 +154,8 @@ event CreditCardExposure::stream_data(f: fa_file, data: string)
 
 event file_new(f: fa_file)
 	{
-	if ( f$source == "HTTP" || f$source == "SMTP" )
+	# We are going to filter "files" from SSL to avoid certs.
+	if ( f$source != "SSL" )
 		{
 		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT, 
 		                    [$stream_event=CreditCardExposure::stream_data]);

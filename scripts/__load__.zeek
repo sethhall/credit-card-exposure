@@ -1,2 +1,2 @@
-@load ./bin-list
 @load ./main
+@load ./bin-list

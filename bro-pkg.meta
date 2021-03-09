@@ -1,6 +1,0 @@
-[package]
-description = Detect credit card numbers in HTTP and SMTP with Bro.
-tags = credit cards, dlp, http, smtp, files
-version = 1.1.0
-script_dir = scripts
-test_command = ( cd tests && btest -d )
