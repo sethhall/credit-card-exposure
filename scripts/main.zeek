@@ -92,7 +92,7 @@ function check_cards(c: connection, data: string): bool
 			# take a copy to avoid modifying the vector while iterating.
 			for ( i in copy(cc_parts) )
 				{
-				if ( i % 2 == 0 )
+				if ( cc_regex in cc_parts[i] )
 					{
 					# Redact all matches
 					local cc_match = cc_parts[i];
