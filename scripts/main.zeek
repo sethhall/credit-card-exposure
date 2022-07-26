@@ -74,6 +74,7 @@ function check_cards(c: connection, data: string): bool
 	local found_cnt = 0;
 
 	local ccps = find_all(data, cc_regex);
+	local trimmed_redacted_data = "";
 	for ( ccp in ccps )
 		{
 		# Remove non digit characters from the beginning and end of string.
@@ -110,7 +111,7 @@ function check_cards(c: connection, data: string): bool
 			if ( begin + summary_length > |redacted_data| )
 				byte_count = |redacted_data| - begin;
 
-			local trimmed_redacted_data = sub_bytes(redacted_data, begin, byte_count);
+			trimmed_redacted_data = sub_bytes(redacted_data, begin, byte_count);
 
 			local log: Info = [$ts=network_time(), 
 			                   $uid=c$uid, $id=c$id,
