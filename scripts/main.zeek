@@ -51,18 +51,48 @@ export {
 
 const luhn_vector = vector(0, 2, 4, 6, 8, 1, 3, 5, 7, 9);
 
-#imlemets luhn algorithem to chaek if cc is a valid number.
-function luhn_check(val: string): bool
+#Implements luhn algorithem to chaek if cc is a valid number.
+#function luhn_check(val: string): bool
+#	{
+#	local sum = 0;
+#	local odd = F;
+#	for ( char in gsub(val, /[^0-9]/, "") )
+#		{
+#		odd = ! odd;
+#		local digit = to_count(char);
+#		sum += ( odd ? digit : luhn_vector[digit] );
+#		}
+#	return sum % 10 == 0;
+#	}
+# This function checks if a given string passes the Luhn algorithm check.
+function luhn_check(cardNo: string): bool
 	{
-	local sum = 0;
-	local odd = F;
-	for ( char in gsub(val, /[^0-9]/, "") )
+	local nDigits = |cardNo|;
+	local nSum = 0;
+	local isSecond = F;
+
+	for ( i in reverse(cardNo) )
 		{
-		odd = ! odd;
-		local digit = to_count(char);
-		sum += ( odd ? digit : luhn_vector[digit] );
+		local d = to_count(i);
+		#local d = to_count(cardNo[to_count(i)]);
+
+		if ( isSecond )
+			{
+			d = d * 2;
+
+			# Handle cases that result in two digits after doubling.
+			nSum += d / 10;
+			nSum += d % 10;
+			}
+		else
+			{
+			nSum += d;
+			}
+
+		isSecond = ! isSecond;
 		}
-	return sum % 10 == 0;
+
+	return nSum % 10 == 0;
 	}
 
 event zeek_init() &priority=5
@@ -75,7 +105,6 @@ function check_cards(c: connection, data: string): bool
 	local found_cnt = 0;
 
 	local ccps = find_all(data, cc_regex);
-
 	for ( ccp in ccps )
 		{
 		# Remove non digit characters from the beginning and end of string.
