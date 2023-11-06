@@ -153,9 +153,12 @@ function check_cards(c: connection, data: string): bool
 
 			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
 			if ( bin_number in bin_list )
+				{
 				log$bank = bin_list[bin_number];
-
-			Log::write(CreditCardExposure::LOG, log);
+				Log::write(CreditCardExposure::LOG, log);
+				}
+			else
+				return F;
 			}
 		}
 	if ( found_cnt > 0 )
