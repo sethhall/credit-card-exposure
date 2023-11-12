@@ -36,7 +36,11 @@ export {
 	option summary_length = 200;
 
 	## The regular expression which is used to find candidate credit cards.
-	option cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/;
+	#the regex from Stehh
+	#option cc_regex = /(^|[^0-9\-])\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|$)/;
+
+	# regex that finds only if starts with > and ends with <
+	option cc_regex = />\x00?[3-9](\x00?[0-9]){2,3}([[:blank:]\-\.]?\x00?[0-9]{4}){3}([^0-9\-]|<)/;
 
 	## Configure this to `F` if you'd like to stop enforcing that
 	## credit cards use an internal digit separator.
@@ -105,6 +109,7 @@ function check_cards(c: connection, data: string): bool
 	local found_cnt = 0;
 
 	local ccps = find_all(data, cc_regex);
+
 	for ( ccp in ccps )
 		{
 		# Remove non digit characters from the beginning and end of string.
@@ -152,6 +157,7 @@ function check_cards(c: connection, data: string): bool
 			    sub_bytes(data, begin, byte_count) ) ];
 
 			local bin_number = to_count(sub_bytes(gsub(ccp, /[^0-9]/, ""), 1, 6));
+
 			if ( bin_number in bin_list )
 				{
 				log$bank = bin_list[bin_number];
